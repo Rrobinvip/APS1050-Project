@@ -16,4 +16,11 @@ contract Adoption {
     function getAdopters() public view returns (address[16] memory) {
         return adopters;
     }
+
+    // Retrieving single adopter based on petId
+    function getAdopter(uint petId) public view returns (address) {
+        require(petId >= 0 && petId <= 15);
+
+        return adopters[petId];
+    }
 }
