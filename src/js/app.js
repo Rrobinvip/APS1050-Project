@@ -16,6 +16,7 @@ App = {
         petTemplate.find('.pet-location').text(data[i].location);
         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
         petTemplate.find('.btn-return').attr('data-id', data[i].id);
+        petTemplate.find('.btn-vac').attr('data-id', data[i].id);
 
         petsRow.append(petTemplate.html());
       }
@@ -70,6 +71,7 @@ App = {
   bindEvents: function() {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
     $(document).on("click", '.btn-return', App.handleReturn);
+    $(document).on("click", ".btn-vac", App.handleVacReg);
   },
 
   markAdopted: function() {
@@ -92,6 +94,8 @@ App = {
     }).catch(function(err) {
       console.log(err.message);
     });
+
+    return App.markVacStatus();
     
   },
   markReturn: function() {
@@ -115,6 +119,26 @@ App = {
     
   },
 
+  markVacStatus: function() {
+    var adoptionInstance;
+
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
+    
+      return adoptionInstance.getVacStatus.call();
+    }).then(function(vacStatus) {
+      for (i = 0; i < vacStatus.length; i++) {
+        console.log(vacStatus[i]);
+        if (vacStatus[i] == true) {
+          $(".panel-pet").eq(i).find(".btn-vac").hide();
+          $(".panel-pet").eq(i).find(".vacStatusText").show();
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
+  },
+
   handleAdopt: function(event) {
     event.preventDefault();
 
@@ -131,6 +155,7 @@ App = {
 
       App.contracts.Adoption.deployed().then(function(instance) {
         adoptionInstance = instance;
+        console.log("trying to adopt, petId:"+petId);
 
         // Execute adopt as a transaction by sending account
         return adoptionInstance.adopt(petId, {from: account});
@@ -173,8 +198,46 @@ App = {
         console.log(err.message);
       });
     });
+  },
+
+  handleVacReg: function(event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    var adoptionInstance;
+
+    let feeInEth = "2";  // the vaccination fee in ETH
+    let feeInWei = "2000000000000000000"  // convert to Wei
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        console.log("Trying to purchase, petId:"+petId);
+
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.vaccinationRegister(petId, {from: account, value: feeInWei});
+      }).then(function(receipt) {
+        console.log("Purchase success, reciept:"+receipt);
+      }).then(function(result) {
+        return App.markVacStatus();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
   }
 
+  // .then(function() {
+  //   console.log("Triggering reload..");
+  //   location.reload();
+  // })
 };
 
 $(function() {
