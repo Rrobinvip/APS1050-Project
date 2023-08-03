@@ -80,7 +80,9 @@ App = {
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
         if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
+          $('.panel-pet').eq(i).find('.btn-adopt').text('Success').attr('disabled', true);
+          $('.panel-pet').eq(i).find('.btn-showOwner').show();
+          $('.panel-pet').eq(i).find('.adopterPwnerTextBlock').text(adopters[i]);
         }
       }
     }).catch(function(err) {
@@ -110,11 +112,13 @@ App = {
         return adoptionInstance.adopt(petId, {from: account});
       }).then(function(result) {
         return App.markAdopted();
+      }).then(function() {
+        console.log("Triggering reload..");
+        location.reload();
       }).catch(function(err) {
         console.log(err.message);
       });
     });
-
   }
 
 };
