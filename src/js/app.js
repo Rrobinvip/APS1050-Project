@@ -14,9 +14,11 @@ App = {
         petTemplate.find('.pet-breed').text(data[i].breed);
         petTemplate.find('.pet-age').text(data[i].age);
         petTemplate.find('.pet-location').text(data[i].location);
+        petTemplate.find('.pet-like').text(0).attr('data-id',data[i].id);
         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
         petTemplate.find('.btn-return').attr('data-id', data[i].id);
         petTemplate.find('.btn-vac').attr('data-id', data[i].id);
+        petTemplate.find('.btn-like').attr('data-id',data[i].id);
 
         petsRow.append(petTemplate.html());
       }
@@ -72,6 +74,7 @@ App = {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
     $(document).on("click", '.btn-return', App.handleReturn);
     $(document).on("click", ".btn-vac", App.handleVacReg);
+    $(document).on("click", ".btn-like", App.handleLike);
   },
 
   markAdopted: function() {
@@ -137,6 +140,25 @@ App = {
     }).catch(function(err) {
       console.log(err.message);
     });
+
+    return App.markLike();
+  },
+
+  markLike: function() {
+    var adoptionInstance;
+
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
+    
+      return adoptionInstance.getLike.call();
+    }).then(function(likePetArray) {
+      for (i = 0; i < likePetArray.length; i++){
+        $(".panel-pet").eq(i).find(".pet-like").text(likePetArray[i]);
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
+    
   },
 
   handleAdopt: function(event) {
@@ -232,7 +254,36 @@ App = {
         console.log(err.message);
       });
     });
-  }
+  },
+  handleLike: function(event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    var adoptionInstance;
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.likePet(petId, {from: account});
+      }).then(function(result) {
+        return App.markLike();
+      }).then(function() {
+        console.log("Triggering reload..");
+        location.reload();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
 
   // .then(function() {
   //   console.log("Triggering reload..");

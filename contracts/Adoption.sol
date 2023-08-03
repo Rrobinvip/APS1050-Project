@@ -4,6 +4,7 @@ contract Adoption {
     address[16] public adopters;
     bool[16] public vaccinationStatus;
     uint public vaccinationFee = 2 ether;
+    uint[16] likePetArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
     // Adopting a pet
     function adopt(uint petId) public returns (uint) {
@@ -51,4 +52,18 @@ contract Adoption {
 
         return petId;
     }
+    //Retrive the like 
+    function getLike() public view returns (uint[16] memory) {
+        return likePetArray;
+    }
+
+    //Like the pet
+    function likePet(uint petId) public returns (uint) {
+        require(petId >= 0 && petId <= 15);
+
+        likePetArray[petId]++;
+
+        return petId;
+    }
+
 }
