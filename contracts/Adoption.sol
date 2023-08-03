@@ -23,4 +23,16 @@ contract Adoption {
 
         return adopters[petId];
     }
+
+
+    function returnPet(uint petId) public returns (uint) {
+        require(petId >= 0 && petId <= 15);
+
+        if (adopters[petId] == msg.sender){
+            adopters[petId] = address(0);
+        }
+
+
+        return petId;
+    }
 }
