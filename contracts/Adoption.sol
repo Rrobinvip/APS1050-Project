@@ -2,6 +2,8 @@ pragma solidity ^0.5.0;
 
 contract Adoption {
     address[16] public adopters;
+    bool[16] public vaccinationStatus;
+    uint public vaccinationFee = 2 ether;
 
     // Adopting a pet
     function adopt(uint petId) public returns (uint) {
@@ -10,6 +12,22 @@ contract Adoption {
         adopters[petId] = msg.sender;
 
         return petId;
+    }
+
+    function vaccinationRegister(uint petId) public payable returns (bool) {
+        require(petId >= 0 && petId <= 15, "Invalid pet id");
+        require(
+            msg.value >= vaccinationFee,
+            "Insufficient ETH for vaccination fee"
+        );
+
+        vaccinationStatus[petId] = true;
+
+        return vaccinationStatus[petId];
+    }
+
+    function getVacStatus() public view returns (bool[16] memory) {
+        return vaccinationStatus;
     }
 
     // Retrieving the adopters
@@ -24,14 +42,12 @@ contract Adoption {
         return adopters[petId];
     }
 
-
     function returnPet(uint petId) public returns (uint) {
         require(petId >= 0 && petId <= 15);
 
-        if (adopters[petId] == msg.sender){
+        if (adopters[petId] == msg.sender) {
             adopters[petId] = address(0);
         }
-
 
         return petId;
     }

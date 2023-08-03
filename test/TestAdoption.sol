@@ -43,10 +43,19 @@ contract TestAdoption {
         Assert.equal(returnedId, expectedPetId, "Return of the expected pet should match what is returned.");
     }
 
+    // function testVacReg() public {
+    //     bool vacStatus = adoption.vaccinationRegister(expectedPetId).value(2 ether)();
+
+    //     Assert.equal(vacStatus, expectedVacStatus, "Vac status should match");
+    // }
+
     // The id of the pet that will be used for testing
     uint expectedPetId = 8;
 
     //The expected owner of adopted pet is this contract
     address expectedAdopter = address(this);
+
+    // The expected vac reg status
+    bool expectedVacStatus = true;
 
 }
