@@ -19,7 +19,8 @@ App = {
         petTemplate.find('.btn-return').attr('data-id', data[i].id);
         petTemplate.find('.btn-vac').attr('data-id', data[i].id);
         petTemplate.find('.btn-like').attr('data-id',data[i].id);
-
+        petTemplate.find('.btn-donate').attr('data-id',data[i].id);
+        petTemplate.find('.btn-adopt-free').attr('data-id',data[i].id);
         petsRow.append(petTemplate.html());
       }
     });
@@ -79,7 +80,6 @@ App = {
       return App.markAdopted();
     });
     
-
     return App.bindEvents();
   },
 
@@ -89,6 +89,8 @@ App = {
     $(document).on("click", ".btn-vac", App.handleVacReg);
     $(document).on("click", ".btn-like", App.handleLike);
     $(document).on("click", ".btn-purchase-food", App.handleFoodPurchase);
+    $(document).on("click", ".btn-donate", App.handleDonate);
+    $(document).on("click", ".btn-adopt-free", App.handleAdoptFree);
   },
 
   markAdopted: function() {
@@ -101,6 +103,7 @@ App = {
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
         console.log("Current adopters (called by markAdopted): "+adopters[i]);
+
         if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
           $('.panel-pet').eq(i).find('.btn-adopt').text('Success').prop('disabled', true);
           $('.panel-pet').eq(i).find('.btn-return').removeProp('disabled');
@@ -111,7 +114,9 @@ App = {
     }).catch(function(err) {
       console.log(err.message);
     });
-
+    App.markDonate();
+    App.markAdoptFree();
+    App.markAdoptFreeFinish();
     return App.markVacStatus();
     
   },
@@ -125,6 +130,7 @@ App = {
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
         console.log("Current adopters (called by markReturn): "+adopters[i]);
+
         if (adopters[i] == "0x0000000000000000000000000000000000000000") {
           $(".panel-pet").eq(i).find(".btn-adopt").removeProp("disabled");
           $(".panel-pet").eq(i).find(".btn-return").prop("disabled", true);
@@ -146,6 +152,7 @@ App = {
     }).then(function(vacStatus) {
       for (i = 0; i < vacStatus.length; i++) {
         console.log("Current vac status (called by markVacStatus): "+vacStatus[i]);
+
         if (vacStatus[i] == true) {
           $(".panel-pet").eq(i).find(".btn-vac").hide();
           $(".panel-pet").eq(i).find(".vacStatusText").show();
@@ -172,6 +179,69 @@ App = {
     }).catch(function(err) {
       console.log(err.message);
     });
+
+    
+  },
+  markDonate: function() {
+    var adoptionInstance;
+
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
+    
+      return adoptionInstance.getDonators.call();
+    }).then(function(donators) {
+      for (i = 0; i < donators.length; i++){
+        console.log(donators[i]);
+        if(donators[i] == "0x0000000000000000000000000000000000000000"){
+          $('.panel-pet').eq(i).find('.btn-adopt-free').hide();
+          $('.panel-pet').eq(i).find('.btn-donate').show();
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
+    
+
+  },
+  markAdoptFree: function() {
+    var adoptionInstance;
+
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
+    
+      return adoptionInstance.getDonators.call();
+    }).then(function(donators) {
+      for (i = 0; i < donators.length; i++){
+        if(donators[i] !== "0x0000000000000000000000000000000000000000"){
+          $('.panel-pet').eq(i).find('.btn-adopt-free').show();
+          $('.panel-pet').eq(i).find('.btn-adopt').hide()
+          $('.panel-pet').eq(i).find('.btn-donate').hide();
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
+    
+  },
+  markAdoptFreeFinish: function() {
+    var adoptionInstance;
+
+    App.contracts.Adoption.deployed().then(function(instance) {
+      adoptionInstance = instance;
+    
+      return adoptionInstance.getAdopters.call();
+    }).then(function(adopters) {
+      for (i = 0; i < adopters.length; i++){
+        console.log(adopters[i]);
+        if(adopters[i] !== "0x0000000000000000000000000000000000000000"){
+          $('.panel-pet').eq(i).find('.btn-adopt-free').hide();
+          $('.panel-pet').eq(i).find('.btn-donate').hide();
+          $('.panel-pet').eq(i).find('.btn-adopt').show().text('Success').prop('disabled', true);
+        }
+      }
+    }).catch(function(err) {
+      console.log(err.message);
+    });
     
   },
 
@@ -181,6 +251,8 @@ App = {
     var petId = parseInt($(event.target).data('id'));
 
     var adoptionInstance;
+
+    let feeInWei = "2000000000000000000";
 
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
@@ -194,7 +266,7 @@ App = {
         console.log("trying to adopt, petId:"+petId);
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.adopt(petId, {from: account});
+        return adoptionInstance.adopt(petId, {from: account, value: feeInWei});
       }).then(function(result) {
         return App.markAdopted();
       }).then(function() {
@@ -213,6 +285,8 @@ App = {
 
     var adoptionInstance;
 
+    let feeInWei = "2000000000000000000";
+
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -224,7 +298,7 @@ App = {
         adoptionInstance = instance;
 
         // Execute adopt as a transaction by sending account
-        return adoptionInstance.returnPet(petId, {from: account});
+        return adoptionInstance.returnPet(petId, {from: account, value: feeInWei});
       }).then(function(result) {
         return App.markReturn();
       }).then(function() {
@@ -290,6 +364,67 @@ App = {
         return adoptionInstance.likePet(petId, {from: account});
       }).then(function(result) {
         return App.markLike();
+      }).then(function() {
+        console.log("Triggering reload..");
+        location.reload();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
+  handleDonate: function(event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    var adoptionInstance;
+
+    let feeInWei = "2000000000000000000";
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.donatePet(petId, {from: account, value: feeInWei});
+      }).then(function(result) {
+        return App.markDonate();
+      }).then(function() {
+        console.log("Triggering reload..");
+        location.reload();
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
+  handleAdoptFree: function(event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    var adoptionInstance;
+
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.adoptFree(petId, {from: account});
+      }).then(function(result) {
+        return App.markAdoptFree();
       }).then(function() {
         console.log("Triggering reload..");
         location.reload();

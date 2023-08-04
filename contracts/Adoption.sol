@@ -2,16 +2,23 @@ pragma solidity ^0.5.0;
 
 contract Adoption {
     address[16] public adopters;
+    address[16] public donators;
     bool[16] public vaccinationStatus;
     uint public vaccinationFee = 2 ether;
     uint[16] likePetArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
     uint[4] foodPrice = [2 ether, 2.5 ether, 6 ether, 1 ether];
     uint[4] foodQuantities = [0, 0, 0, 0];
+    uint public returnFee = 2 ether;
+    uint public adoptionFee = 2 ether;
+    uint public donationFee = 2 ether;
 
     // Adopting a pet
-    function adopt(uint petId) public returns (uint) {
+    function adopt(uint petId) public payable returns (uint) {
         require(petId >= 0 && petId <= 15);
-
+        require(
+            msg.value >= adoptionFee,
+            "Insufficient ETH for adoption fee"
+        );
         adopters[petId] = msg.sender;
 
         return petId;
@@ -61,8 +68,12 @@ contract Adoption {
         return adopters[petId];
     }
 
-    function returnPet(uint petId) public returns (uint) {
+    function returnPet(uint petId) public payable returns (uint) {
         require(petId >= 0 && petId <= 15);
+        require(
+            msg.value >= returnFee,
+            "Insufficient ETH for return fee"
+        );
 
         if (adopters[petId] == msg.sender) {
             adopters[petId] = address(0);
@@ -80,6 +91,29 @@ contract Adoption {
         require(petId >= 0 && petId <= 15);
 
         likePetArray[petId]++;
+
+        return petId;
+    }
+
+    //Retrive the donator
+    function getDonators() public view returns (address[16] memory) {
+        return donators;
+    }
+    // donate a pet
+    function donatePet(uint petId) public payable returns (uint) {
+        require(petId >= 0 && petId <= 15);
+        require(
+            msg.value >= donationFee,
+            "Insufficient ETH for donation fee"
+        );
+        donators[petId] = msg.sender;
+
+        return petId;
+    }
+    // Adopting a pet free
+    function adoptFree(uint petId) public returns (uint) {
+        require(petId >= 0 && petId <= 15);
+        adopters[petId] = msg.sender;
 
         return petId;
     }
