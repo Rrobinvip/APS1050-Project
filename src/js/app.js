@@ -21,6 +21,7 @@ App = {
         petTemplate.find('.btn-like').attr('data-id',data[i].id);
         petTemplate.find('.btn-donate').attr('data-id',data[i].id);
         petTemplate.find('.btn-adopt-free').attr('data-id',data[i].id);
+        petTemplate.find('.btn-showOwner').attr('data-id',data[i].id);
         petsRow.append(petTemplate.html());
       }
     });
@@ -91,6 +92,7 @@ App = {
     $(document).on("click", ".btn-purchase-food", App.handleFoodPurchase);
     $(document).on("click", ".btn-donate", App.handleDonate);
     $(document).on("click", ".btn-adopt-free", App.handleAdoptFree);
+    $(document).on("click", ".btn-showOwner", App.handleShowOwner);
   },
 
   markAdopted: function() {
@@ -105,7 +107,8 @@ App = {
         console.log("Current adopters (called by markAdopted): "+adopters[i]);
 
         if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-          $('.panel-pet').eq(i).find('.btn-adopt').text('Success').prop('disabled', true);
+          // $('.panel-pet').eq(i).find('.btn-adopt').text('Success').prop('disabled', true);
+          $('.panel-pet').eq(i).find('.btn-adopt').removeClass('btn-primary').addClass('btn-success').text('Success').prop('disabled', true);
           $('.panel-pet').eq(i).find('.btn-return').removeProp('disabled');
           $('.panel-pet').eq(i).find('.btn-showOwner').show();
           $('.panel-pet').eq(i).find('.adopterPwnerTextBlock').text(adopters[i]);
@@ -156,6 +159,7 @@ App = {
         if (vacStatus[i] == true) {
           $(".panel-pet").eq(i).find(".btn-vac").hide();
           $(".panel-pet").eq(i).find(".vacStatusText").show();
+          $(".panel-pet").eq(i).find(".vacStatusAlert").show();
         }
       }
     }).catch(function(err) {
@@ -180,7 +184,6 @@ App = {
       console.log(err.message);
     });
 
-    
   },
   markDonate: function() {
     var adoptionInstance;
@@ -214,7 +217,7 @@ App = {
       for (i = 0; i < donators.length; i++){
         if(donators[i] !== "0x0000000000000000000000000000000000000000"){
           $('.panel-pet').eq(i).find('.btn-adopt-free').show();
-          $('.panel-pet').eq(i).find('.btn-adopt').hide()
+          $('.panel-pet').eq(i).find('.btn-adopt').prop('disabled', true);
           $('.panel-pet').eq(i).find('.btn-donate').hide();
         }
       }
@@ -465,6 +468,36 @@ App = {
       });
     });
     
+  },
+
+  handleShowOwner: function(event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    var adoptionInstance;
+
+    console.log("Triggering showOwner, with petId:"+petId);
+
+
+    web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        // Execute adopt as a transaction by sending account
+        return adoptionInstance.getAdopters.call();
+      }).then(function(adopters) {
+        alert(adopters[petId]);
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
   }
 
   // .then(function() {
