@@ -5,6 +5,8 @@ contract Adoption {
     bool[16] public vaccinationStatus;
     uint public vaccinationFee = 2 ether;
     uint[16] likePetArray = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    uint[4] foodPrice = [2 ether, 2.5 ether, 6 ether, 1 ether];
+    uint[4] foodQuantities = [0, 0, 0, 0];
 
     // Adopting a pet
     function adopt(uint petId) public returns (uint) {
@@ -13,6 +15,22 @@ contract Adoption {
         adopters[petId] = msg.sender;
 
         return petId;
+    }
+
+    function foodPurchase(uint foodId) public payable returns (uint) {
+        require(foodId >= 0 && foodId <= 3, "Invalid food id");
+        require(
+            msg.value >= foodPrice[foodId],
+            "Insufficient ETH for food purchasing"
+        );
+
+        foodQuantities[foodId]+=1;
+
+        return foodQuantities[foodId];
+    }
+
+    function getFoodQuantities() public view returns (uint[4] memory) {
+        return foodQuantities;
     }
 
     function vaccinationRegister(uint petId) public payable returns (bool) {
