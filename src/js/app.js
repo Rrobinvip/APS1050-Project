@@ -25,6 +25,19 @@ App = {
       }
     });
 
+    $.getJSON('../products.json', function(data) {
+      var productsRow = $('#productRow');
+      var productsTemplate = $('#foodTemplate');
+
+      for (i = 0; i < data.length; i ++) {
+        productsTemplate.find('.panel-title').text(data[i].name);
+        productsTemplate.find('.food-price').text(data[i].price+" Wei");
+        productsTemplate.find('.btn-purchase-food').attr('data-id', data[i].id);
+
+        productsRow.append(productsTemplate.html());
+      }
+    });
+
     return await App.initWeb3();
   },
 
@@ -75,6 +88,7 @@ App = {
     $(document).on("click", '.btn-return', App.handleReturn);
     $(document).on("click", ".btn-vac", App.handleVacReg);
     $(document).on("click", ".btn-like", App.handleLike);
+    $(document).on("click", ".btn-purchase-food", App.handleFoodPurchase);
     $(document).on("click", ".btn-donate", App.handleDonate);
     $(document).on("click", ".btn-adopt-free", App.handleAdoptFree);
   },
@@ -88,6 +102,8 @@ App = {
       return adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
+        console.log("Current adopters (called by markAdopted): "+adopters[i]);
+
         if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
           $('.panel-pet').eq(i).find('.btn-adopt').text('Success').prop('disabled', true);
           $('.panel-pet').eq(i).find('.btn-return').removeProp('disabled');
@@ -113,6 +129,8 @@ App = {
       return adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
+        console.log("Current adopters (called by markReturn): "+adopters[i]);
+
         if (adopters[i] == "0x0000000000000000000000000000000000000000") {
           $(".panel-pet").eq(i).find(".btn-adopt").removeProp("disabled");
           $(".panel-pet").eq(i).find(".btn-return").prop("disabled", true);
@@ -133,6 +151,8 @@ App = {
       return adoptionInstance.getVacStatus.call();
     }).then(function(vacStatus) {
       for (i = 0; i < vacStatus.length; i++) {
+        console.log("Current vac status (called by markVacStatus): "+vacStatus[i]);
+
         if (vacStatus[i] == true) {
           $(".panel-pet").eq(i).find(".btn-vac").hide();
           $(".panel-pet").eq(i).find(".vacStatusText").show();
@@ -413,6 +433,39 @@ App = {
       });
     });
   },
+
+  handleFoodPurchase: function(event) {
+    event.preventDefault();
+
+    var foodId = parseInt($(event.target).data('id'));
+
+    console.log("Trying to purchase food, foodId: "+foodId);
+
+    $.getJSON('../products.json', function(data) {
+      var foodPriceInWei = data[foodId].price;
+      web3.eth.getAccounts(function(error, accounts) {
+        if (error) {
+          console.log(error);
+        }
+  
+        var account = accounts[0];
+  
+        App.contracts.Adoption.deployed().then(function(instance) {
+          adoptionInstance = instance;
+          console.log("Trying to purchase food, foodId, again, inside adoption instance: "+foodId);
+  
+          // Execute adopt as a transaction by sending account
+          return adoptionInstance.foodPurchase(foodId, {from: account, value: foodPriceInWei});
+        }).then(function(receipt) {
+          alert("Thank you for suppoerting our dogs!");
+          console.log("Purchase success, reciept:"+receipt);
+        }).catch(function(err) {
+          console.log(err.message);
+        });
+      });
+    });
+    
+  }
 
   // .then(function() {
   //   console.log("Triggering reload..");

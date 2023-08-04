@@ -1,0 +1,26 @@
+[
+  {
+    "id": 0,
+    "name": "Blue Buffalo® Wilderness™ All Life Stage Wet Dog Food - Grain Free, 12.5 Oz.",
+    "category": "food",
+    "price":"2000000000000000000"
+  },
+  {
+    "id": 1,
+    "name": "Tiki Dog® Aloha Petites® All Life Stage Wet Dog Food - Chicken & Beef",
+    "category": "food",
+    "price":"2500000000000000000"
+  },
+  {
+    "id": 2,
+    "name": "Freshpet Vital Complete Meal All Life Stage Dog Food - Chicken",
+    "category": "food",
+    "price":"6000000000000000000"
+  },
+  {
+    "id": 3,
+    "name": "Freshpet Vital Complete Meal All Life Stage Dog Food - Chicken",
+    "category": "food",
+    "price":"1000000000000000000"
+  }
+]
