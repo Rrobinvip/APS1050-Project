@@ -1,5 +1,7 @@
 # Project for APS1050
 
+Update excutive summary and setup instruction. A video demonstrating all features.
+
 A project extended from truffle pet-shop. The following goal should be satisfied to meet the requirements of the projects:
 
 1. changes on the front-end such as changes to the Javascript (app.js) and HTML (index.html) rendering, and
