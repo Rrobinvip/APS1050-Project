@@ -1,5 +1,12 @@
 # Project for APS1050
 
+APS 1050 Project
+
+Group member:
+Haoyu Shi, 1009191580, hy.shi@mail.utoronto.ca
+Mei Mei, 1003477463, lesley.mei@mail.utoronto.ca
+Tianqi Wang, 1002783749, alantainqi.wang@mail.utoronto.ca
+
 Update excutive summary and setup instruction. A video demonstrating all features.
 
 A project extended from truffle pet-shop. The following goal should be satisfied to meet the requirements of the projects:
